@@ -26,16 +26,6 @@ struct tag
     tag* brother;
 };
 
-int splitString(string text, string *&line) // modify array size + save splitted data in each array space + return array size
-{   
-    int newSize = 3;
-    delete[] line;
-    line = new string[newSize];
-    line[0] = "line 0";
-    line[1] = "line 1";
-    line[2] = "line 2";
-    return newSize;
-}
 
 void printArray(string *data, int size)
 {
@@ -43,20 +33,35 @@ void printArray(string *data, int size)
         cout << *(data+i) << endl;
 }
 
+// modify array size + save splitted data in each array space + return array size
+int splitString(string text, string*& line, char delimiter) //string*& lets you modify an array size
+{
+    int newSize = 3; //test value
+    delete[] line; //delete array -> you get something like string* line
+    line = new string[newSize]; // create a new array with a new size
+    line[0] = "line 0";
+    line[1] = "line 1";
+    line[2] = "line 2";
+    return newSize; //returns array size so you will know the number of splitted elements
+}
+
 void createDataStruct(string data)
 {
     int lineSize = 1; // just to initialize, it will change after split function
     string* line = new string[lineSize]; //just to initalize/convert apu to array, it will change after split function
-    lineSize = splitString(data, line);
+    lineSize = splitString(data, line, '\n');
     printArray(line, lineSize);
-    //cout << data << endl;
+    //split to get words
+    //int wordsSize = 1;
+    //string* words = new string[wordSize]
+    //process each word with a for loop maybe
 }
 
 string readFile(string path)
 {
     ifstream myfile(path); //create file object
     string tempBuffer, content;
-    while (getline(myfile, tempBuffer)) //read document lines
+    while (getline(myfile, tempBuffer)) //read document line by line
         content += tempBuffer + '\n';
     myfile.close();
     return content;
