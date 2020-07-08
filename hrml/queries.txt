@@ -1,0 +1,8 @@
+tag1.tag2~name
+tag1~name
+tag1~value
+tag1.tag2.tag3~name
+tag1.tag2.tag3~value
+tag1.tag2.tag4~text
+tag1.tag2.tag4.tag6~text
+tag1.tag2.tag4.tag6~buzz

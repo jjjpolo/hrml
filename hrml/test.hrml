@@ -1,0 +1,12 @@
+<tag1 value = "HelloWorld">
+	<tag2 name = "Name1">
+		<tag3 name = "Name3">
+		</tag3>
+		<tag4 name = "Name4" text = "Super">
+			<tag6 buzz = "Buzz6">
+			</tag6>
+		</tag4>
+		<tag5>
+		</tag5>
+	</tag2>
+</tag1>
