@@ -3,7 +3,8 @@
 
 #include <iostream>
 #include <fstream>
-#include <string> //getline
+#include <string> //getline, string.find
+#include <vector>
 
 using namespace std;
 
@@ -27,34 +28,46 @@ struct tag
 };
 
 
-void printArray(string *data, int size)
+void printStringVector(vector<std::string> &data)
 {
-    for (int i =0 ; i<size ; i++)
-        cout << *(data+i) << endl;
+    for (int i =0 ; i<data.size() ; i++)
+        cout << "[printStringVector]" << data[i] << endl;
 }
 
-// modify array size + save splitted data in each array space + return array size
-int splitString(string text, string*& line, char delimiter) //string*& lets you modify an array size
+void splitString(string& str, char delimiter, vector<std::string>& resultContainer)
 {
-    int newSize = 3; //test value
-    delete[] line; //delete array -> you get something like string* line
-    line = new string[newSize]; // create a new array with a new size
-    line[0] = "line 0";
-    line[1] = "line 1";
-    line[2] = "line 2";
-    return newSize; //returns array size so you will know the number of splitted elements
+    cout << endl << "[splitString]" << "--------------------->Start" << endl << str;
+    unsigned long int substrRangeLow = 0; //big number in case of large string to be processed
+    for (int i = 0; i < str.size(); i++)
+    {
+        cout << str[i];
+        if (str[i] == delimiter)
+        {
+            resultContainer.push_back(str.substr(substrRangeLow, i - substrRangeLow));
+            substrRangeLow = i + 1; //this makes the var points to the next 1st char of the split data
+        }
+        else if (i == str.size() - 1)
+        {
+            resultContainer.push_back(str.substr(substrRangeLow, i - substrRangeLow + 1));
+        }
+    }
+    cout << endl << "[splitString]" << "--------------------->Done" << endl << endl;
 }
 
 void createDataStruct(string data)
 {
-    int lineSize = 1; // just to initialize, it will change after split function
-    string* line = new string[lineSize]; //just to initalize/convert apu to array, it will change after split function
-    lineSize = splitString(data, line, '\n');
-    printArray(line, lineSize);
-    //split to get words
-    //int wordsSize = 1;
-    //string* words = new string[wordSize]
-    //process each word with a for loop maybe
+    vector<std::string> lines; //this will contain each line (\n split) from the text file
+    vector<std::string> words; //this will contain each word (blankSpace split) for each line
+    
+    splitString(data, '\n', lines);
+    printStringVector(lines);
+
+    for (auto element : lines)
+    {
+        words.clear();
+        splitString(element, ' ', words);
+        printStringVector(words);
+    }
 }
 
 string readFile(string path)
