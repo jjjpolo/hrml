@@ -79,6 +79,7 @@ StyleCopReport.xml
 *.pch
 *.pdb
 *.ipdb
+*.db
 *.pgc
 *.pgd
 *.rsp
@@ -360,3 +361,5 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+.vs/hrml/v16/Browse.VC.db

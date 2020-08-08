@@ -1,24 +1,32 @@
-// hrml.cpp : Este archivo contiene la función "main". La ejecución del programa comienza y termina ahí.
-//
+/*
+hrml.cpp contains the main fucntion
+*/
+
 
 #include <iostream>
-#include <fstream>
+#include <fstream> //For reading files 
 #include <string> //getline, string.find
 #include <vector>
 
 using namespace std;
 
+/*
+Each tag will have a pinter to a propStruct where its 
+properties weill be placed.
+*/
 struct propStruct
 {
-    string propName;
-    string value;
+    std::string propName;
+    std::string value;
     propStruct* next;
 };
 
+
+//Each tag will be represented as a tag Struct
 struct tag
 {
     //----------------->variable
-    string sysID;
+    std::string sysID;
     //----------------->properties tree
     propStruct* propertie;
     //----------------->family tree
@@ -27,31 +35,53 @@ struct tag
     tag* brother;
 };
 
-
+//Prints the content of an string vector, no matter its size (autodetect size)
 void printStringVector(vector<std::string> &data)
 {
     for (int i =0 ; i<data.size() ; i++)
-        cout << "[printStringVector]" << data[i] << endl;
+        std::cout << "[printStringVector]" << data[i] << endl;
 }
 
+
+
+//Removes balnk spaces, \n, and \t from a string
+std::string stripString(std::string s)
+{
+    std::string response = "";
+    for (int i = 0; i < s.size(); i++)
+    {
+        if (s[i] != ' ' && s[i] != '\n' && s[i] != '\t')
+        {
+            //std::cout << "{" << s[i] << "}" << std::endl;
+            response += s[i];
+        }
+    }
+    std::cout << "[strip] " << response << std::endl;
+    return response;
+}
+
+/*
+Splits a string (based on a delimiter) and return the result in a vector which 
+is modified (in size and content) from this function thanks to the reference passing (&)
+*/
 void splitString(string& str, char delimiter, vector<std::string>& resultContainer)
 {
-    cout << endl << "[splitString]" << "--------------------->Start" << endl << str;
+    std::cout << endl << "[splitString]" << "-------------------------------->Start" << std::endl;
     unsigned long int substrRangeLow = 0; //big number in case of large string to be processed
     for (int i = 0; i < str.size(); i++)
     {
-        cout << str[i];
+        std::cout << str[i];
         if (str[i] == delimiter)
         {
             resultContainer.push_back(str.substr(substrRangeLow, i - substrRangeLow));
             substrRangeLow = i + 1; //this makes the var points to the next 1st char of the split data
         }
-        else if (i == str.size() - 1)
+        else if (i == str.size() - 1) //when passing over the end and \n was not found
         {
             resultContainer.push_back(str.substr(substrRangeLow, i - substrRangeLow + 1));
         }
     }
-    cout << endl << "[splitString]" << "--------------------->Done" << endl << endl;
+    std::cout << endl << "[splitString]" << "-------------------------------->Done!" << endl;
 }
 
 void createDataStruct(string data)
@@ -60,42 +90,46 @@ void createDataStruct(string data)
     vector<std::string> words; //this will contain each word (blankSpace split) for each line
     
     splitString(data, '\n', lines);
-    printStringVector(lines);
+    //printStringVector(lines);
 
+    /*
+    For each line it will walk throut it and get each word by splitting the string using 
+    a 'blank space' delimiter. 
+    The result of splitting will be stored in the words vector which will be cleared 
+    before processing a new line
+    Finally, for each word detected it will perform an specific action that could be
+    create a new tag (node) or create a new propertie node. 
+    */
     for (auto element : lines)
     {
         words.clear();
         splitString(element, ' ', words);
+        for (int i = 0; i < words.size(); i++)
+            words[i] = stripString(words[i]);
         printStringVector(words);
     }
 }
 
 string readFile(string path)
 {
-    ifstream myfile(path); //create file object
+    //create file object
+    ifstream myfile(path); 
+
     string tempBuffer, content;
-    while (getline(myfile, tempBuffer)) //read document line by line
+
+    //read document line by line
+    while (getline(myfile, tempBuffer))
         content += tempBuffer + '\n';
+
     myfile.close();
     return content;
 }
 
 int main()
 {
-    //variables
     string rawData;
 
-    rawData = readFile("./test.hrml");  // get text from document
-    createDataStruct(rawData); // create data structure
-    cin.get(); // pause console 
+    rawData = readFile("./test.hrml");
+    createDataStruct(rawData); 
+    cin.get(); 
 }
-
-// Ejecutar programa: Ctrl + F5 o menú Depurar > Iniciar sin depurar
-// Depurar programa: F5 o menú Depurar > Iniciar depuración
-
-// Sugerencias para primeros pasos: 1. Use la ventana del Explorador de soluciones para agregar y administrar archivos
-//   2. Use la ventana de Team Explorer para conectar con el control de código fuente
-//   3. Use la ventana de salida para ver la salida de compilación y otros mensajes
-//   4. Use la ventana Lista de errores para ver los errores
-//   5. Vaya a Proyecto > Agregar nuevo elemento para crear nuevos archivos de código, o a Proyecto > Agregar elemento existente para agregar archivos de código existentes al proyecto
-//   6. En el futuro, para volver a abrir este proyecto, vaya a Archivo > Abrir > Proyecto y seleccione el archivo .sln
