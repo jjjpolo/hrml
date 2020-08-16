@@ -1,66 +1,6 @@
-/*
-hrml.cpp contains the main fucntion
-*/
+#include "hrml.h"
 
-
-#include <iostream>
-#include <fstream> //For reading files 
-#include <string> //getline, string.find
-#include <vector>
-
-using namespace std;
-
-enum enum_wordMode
-{
-    /*
-    * tagMode looking for all the existent parameters for this tag
-    * paraMode, looking for the value of the current param
-    * father mode looking for sons
-    */
-    unknown                = 0,
-    startTag               = 1,
-    startEndTag            = 2,
-    gotAParam                   = 3,
-    gotAnEqual          = 4,
-    gotAValue               = 5,
-    gotAValueThenEndTag     = 6,
-    gotEndOfHeader = 7,
-    gotAnEndOfTag =8
-};
-
-enum enum_familyMode
-{
-    undefined     = 0,
-    fatherMode  = 1,
-    sonMode = 2 //it means that we will need to get the father of the current node to set it as the current node
-};
-
-/*
-Each tag will have a pinter to a propStruct where its 
-properties weill be placed.
-*/
-struct propertie
-{
-    std::string description;
-    std::string value;
-    propertie* next = NULL;
-};
-
-propertie* currentPropertie;
-
-//Each tag will be represented as a tag Struct
-struct tag
-{
-    //----------------->variable
-    std::string name; // tag1, tag2, tag3....
-    //----------------->properties tree
-    propertie* propertie;
-    //----------------->family tree
-    tag* father = NULL;
-    tag* son = NULL;
-    tag* brother = NULL;
-};
-
+property* currentPropertie;
 tag* mainTag = NULL; // at the begining we do not have a main node, only the pointer
 tag* currentTag = NULL;
 
@@ -84,15 +24,15 @@ void getTheFatherOfCurrentNode()
 }
 
 //Prints the content of an string vector, no matter its size (autodetect size)
-void printStringVector(vector<std::string> &data)
+void printStringVector(std::vector<std::string> &data)
 {
     for (int i =0 ; i<data.size() ; i++)
-        std::cout << "[printStringVector]" << data[i] << endl;
+        std::cout << "[printStringVector]" << data[i] << std::endl;
 }
 
 void createTag(std::string tagName)
 {
-    std:cout << "[createTag] Creating tag: " << tagName << std::endl;
+    std::cout << "[createTag] Creating tag: " << tagName << std::endl;
     tag* newTag = new tag;
     if (currentTag == NULL)
     {
@@ -120,10 +60,11 @@ void createTag(std::string tagName)
             currentTag->brother = newTag;
         }
     }
-    currentTag->name = tagName; // here we need to point who is the current node
+    currentTag->name = stripString (tagName, '<'); // here we need to point who is the current node
+    std::cout << "[createTag] Tag: " << currentTag->name << " created! " << std::endl;
 }
 
-int detectWordMode(string s, int &familyMode)
+int detectWordMode(std::string s, int &familyMode)
 {
     familyMode = fatherMode; //almost always it will be father mode
     int response = gotAParam; // default value since this notation does not have a special char e.g name, age
@@ -164,7 +105,23 @@ std::string stripString(std::string s)
             response += s[i];
         }
     }
-    std::cout << "[strip] " << response << std::endl;
+    std::cout << "[strip] Strip blanks, new line, and tabs | result: " << response << std::endl;
+    return response;
+}
+
+//Removes an especific char from a string (orvelaoding stripString func)
+std::string stripString(std::string s, char skipThis)
+{
+    std::string response = "";
+    for (int i = 0; i < s.size(); i++)
+    {
+        if (s[i] != skipThis)
+        {
+            //std::cout << "{" << s[i] << "}" << std::endl;
+            response += s[i];
+        }
+    }
+    std::cout << "[strip] strip '" << skipThis << "' from: " << s << " result: "<< response << std::endl;
     return response;
 }
 
@@ -172,9 +129,9 @@ std::string stripString(std::string s)
 Splits a string (based on a delimiter) and return the result in a vector which 
 is modified (in size and content) from this function thanks to the reference passing (&)
 */
-void splitString(string& str, char delimiter, vector<std::string>& resultContainer)
+void splitString(std::string& str, char delimiter, std::vector<std::string>& resultContainer)
 {
-    std::cout << endl << "[splitString]" << "-------------------------------->Start" << std::endl;
+    std::cout << std::endl << "[splitString]" << "-------------------------------->Start" << std::endl;
     unsigned long int substrRangeLow = 0; //big number in case of large string to be processed
     for (int i = 0; i < str.size(); i++)
     {
@@ -189,15 +146,15 @@ void splitString(string& str, char delimiter, vector<std::string>& resultContain
             resultContainer.push_back(str.substr(substrRangeLow, i - substrRangeLow + 1));
         }
     }
-    std::cout << endl << "[splitString]" << "-------------------------------->Done!" << endl;
+    std::cout << std::endl << "[splitString]" << "-------------------------------->Done!" << std::endl;
 }
 
 // Probably tho most important fucntion, this chunk of code makes the structure (tree)
 // based on the raw data read form the hrml file
-void createDataStruct(string data)
+void createDataStruct(std::string data)
 {
-    vector<std::string> lines; //this will contain each line (\n split) from the text file
-    vector<std::string> words; //this will contain each word (blankSpace split) for each line
+    std::vector<std::string> lines; //this will contain each line (\n split) from the text file
+    std::vector<std::string> words; //this will contain each word (blankSpace split) for each line
     
     splitString(data, '\n', lines);
     //printStringVector(lines);
@@ -220,7 +177,7 @@ void createDataStruct(string data)
         {
             words[i] = stripString(words[i]);
             currentWordMode = detectWordMode(words[i], currentFamilyMode);
-            std::cout << "[detecWordMode] " << words[i] << " detected as mode: " << currentWordMode << std::endl;
+            std::cout << "[detectWordMode] " << words[i] << " detected as mode: " << currentWordMode << std::endl;
             if (currentFamilyMode == sonMode)
                 getTheFatherOfCurrentNode();
 
@@ -235,12 +192,12 @@ void createDataStruct(string data)
     }
 }
 
-string readFile(string path)
+std::string readFile(std::string path)
 {
     //create file object
-    ifstream myfile(path); 
+    std::ifstream myfile(path);
 
-    string tempBuffer, content;
+    std::string tempBuffer, content;
 
     //read document line by line
     while (getline(myfile, tempBuffer))
@@ -248,13 +205,4 @@ string readFile(string path)
 
     myfile.close();
     return content;
-}
-
-int main()
-{
-    string rawData;
-
-    rawData = readFile("./test.hrml");
-    createDataStruct(rawData); 
-    cin.get(); 
 }
