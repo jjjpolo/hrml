@@ -17,41 +17,71 @@ enum enum_wordMode
     * paraMode, looking for the value of the current param
     * father mode looking for sons
     */
-    unknownMode,
-    tagMode,
-    tagThenFatherMode,
-    paramMode,
-    assingingValueMode,
-    readValueMode,
-    readValueThenFatherMode,
-    brotherMode,
-    fatherMode
-}wordMode;
+    unknown                = 0,
+    startTag               = 1,
+    startEndTag            = 2,
+    gotAParam                   = 3,
+    gotAnEqual          = 4,
+    gotAValue               = 5,
+    gotAValueThenEndTag     = 6,
+    gotEndOfHeader = 7,
+    gotAnEndOfTag =8
+};
+
+enum enum_familyMode
+{
+    undefined     = 0,
+    fatherMode  = 1,
+    sonMode = 2 //it means that we will need to get the father of the current node to set it as the current node
+};
 
 /*
 Each tag will have a pinter to a propStruct where its 
 properties weill be placed.
 */
-struct propStruct
+struct propertie
 {
-    std::string propName;
+    std::string description;
     std::string value;
-    propStruct* next;
+    propertie* next = NULL;
 };
 
+propertie* currentPropertie;
 
 //Each tag will be represented as a tag Struct
 struct tag
 {
     //----------------->variable
-    std::string sysID;
+    std::string name; // tag1, tag2, tag3....
     //----------------->properties tree
-    propStruct* propertie;
+    propertie* propertie;
     //----------------->family tree
-    tag* father;
-    tag* son;
-    tag* brother;
+    tag* father = NULL;
+    tag* son = NULL;
+    tag* brother = NULL;
 };
+
+tag* mainTag = NULL; // at the begining we do not have a main node, only the pointer
+tag* currentTag = NULL;
+
+void addSonToFamily(tag* fatherTag, tag* sonTag)
+{
+    fatherTag->son = sonTag;
+    sonTag->father = fatherTag;
+}
+
+void addBrotherToFamily(tag* bigBrotherTag, tag* smallBrotherTag)
+{
+    bigBrotherTag->brother = smallBrotherTag;
+    smallBrotherTag->father = bigBrotherTag->father;
+    smallBrotherTag->brother = NULL;
+}
+
+void getTheFatherOfCurrentNode()
+{
+    if (currentTag->father != NULL)
+        currentTag = currentTag->father;
+}
 
 //Prints the content of an string vector, no matter its size (autodetect size)
 void printStringVector(vector<std::string> &data)
@@ -60,25 +90,64 @@ void printStringVector(vector<std::string> &data)
         std::cout << "[printStringVector]" << data[i] << endl;
 }
 
-int detectWordMode(string s)
+void createTag(std::string tagName)
 {
-    int response = paramMode;
+    std:cout << "[createTag] Creating tag: " << tagName << std::endl;
+    tag* newTag = new tag;
+    if (currentTag == NULL)
+    {
+        //it means this is the 1st node
+        mainTag = newTag;
+        currentTag = mainTag;
+    }
+    else
+    {
+        if (currentTag->son == NULL) //if current tag does not have a son add one to it
+        {
+            //currentTag->son = newTag;
+            addSonToFamily(currentTag, newTag);
+        }
+        else
+        {
+            // If current tag has a son then point currentTag pointer to its son to add the
+            // new tag as a brother
+            currentTag = currentTag->son;
+
+            // if current tag has brothers, walk through them until it finds the last brother
+            // then add a new brother
+            while (currentTag->brother != NULL)
+                currentTag = currentTag->brother;
+            currentTag->brother = newTag;
+        }
+    }
+    currentTag->name = tagName; // here we need to point who is the current node
+}
+
+int detectWordMode(string s, int &familyMode)
+{
+    familyMode = fatherMode; //almost always it will be father mode
+    int response = gotAParam; // default value since this notation does not have a special char e.g name, age
     for (int i = 0; i < s.size(); i++)
     {
         if (s[i] == '<')
-            response = tagMode;
-        else if (s[i] == '>' && response == tagMode)
-            return tagThenFatherMode;
+            response = startTag;
+        else if (s[i] == '>' && response == startTag)
+            return startEndTag;
         else if (s[i] == '=')
-            return assingingValueMode;
+            return gotAnEqual;
         else if (s[i] == '"')
-            response = readValueMode;
-        else if (s[i] == '>' && response == readValueMode)
-            return readValueThenFatherMode;
+            response = gotAValue;
+        else if (s[i] == '>' && response == gotAValue)
+            return gotAValueThenEndTag;
         else if (s[i] == '>')
-            return fatherMode;
+            return gotEndOfHeader;
         else if (s[i] == '/')
-            return brotherMode;
+        {
+            //only in this case family mode will change to son mode
+            //it means that we will need to get the father of the current node to set it as the current node
+            familyMode = sonMode; 
+            return gotAnEndOfTag; 
+        }
     }
     return response;
 }
@@ -142,6 +211,7 @@ void createDataStruct(string data)
     create a new tag (node) or create a new propertie node. 
     */
     int currentWordMode = 0;
+    int currentFamilyMode = 1; // family mode will be father at the begining
     for (auto element : lines)
     {
         words.clear();
@@ -149,8 +219,17 @@ void createDataStruct(string data)
         for (int i = 0; i < words.size(); i++)
         {
             words[i] = stripString(words[i]);
-            currentWordMode = detectWordMode(words[i]);
+            currentWordMode = detectWordMode(words[i], currentFamilyMode);
             std::cout << "[detecWordMode] " << words[i] << " detected as mode: " << currentWordMode << std::endl;
+            if (currentFamilyMode == sonMode)
+                getTheFatherOfCurrentNode();
+
+            switch (currentWordMode)
+            {
+                case startTag:
+                    createTag(words[i]);
+                    break;
+            }
         }
         //printStringVector(words);
     }
