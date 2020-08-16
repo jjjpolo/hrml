@@ -10,6 +10,24 @@ hrml.cpp contains the main fucntion
 
 using namespace std;
 
+enum enum_wordMode
+{
+    /*
+    * tagMode looking for all the existent parameters for this tag
+    * paraMode, looking for the value of the current param
+    * father mode looking for sons
+    */
+    unknownMode,
+    tagMode,
+    tagThenFatherMode,
+    paramMode,
+    assingingValueMode,
+    readValueMode,
+    readValueThenFatherMode,
+    brotherMode,
+    fatherMode
+}wordMode;
+
 /*
 Each tag will have a pinter to a propStruct where its 
 properties weill be placed.
@@ -42,7 +60,28 @@ void printStringVector(vector<std::string> &data)
         std::cout << "[printStringVector]" << data[i] << endl;
 }
 
-
+int detectWordMode(string s)
+{
+    int response = paramMode;
+    for (int i = 0; i < s.size(); i++)
+    {
+        if (s[i] == '<')
+            response = tagMode;
+        else if (s[i] == '>' && response == tagMode)
+            return tagThenFatherMode;
+        else if (s[i] == '=')
+            return assingingValueMode;
+        else if (s[i] == '"')
+            response = readValueMode;
+        else if (s[i] == '>' && response == readValueMode)
+            return readValueThenFatherMode;
+        else if (s[i] == '>')
+            return fatherMode;
+        else if (s[i] == '/')
+            return brotherMode;
+    }
+    return response;
+}
 
 //Removes balnk spaces, \n, and \t from a string
 std::string stripString(std::string s)
@@ -84,6 +123,8 @@ void splitString(string& str, char delimiter, vector<std::string>& resultContain
     std::cout << endl << "[splitString]" << "-------------------------------->Done!" << endl;
 }
 
+// Probably tho most important fucntion, this chunk of code makes the structure (tree)
+// based on the raw data read form the hrml file
 void createDataStruct(string data)
 {
     vector<std::string> lines; //this will contain each line (\n split) from the text file
@@ -100,13 +141,18 @@ void createDataStruct(string data)
     Finally, for each word detected it will perform an specific action that could be
     create a new tag (node) or create a new propertie node. 
     */
+    int currentWordMode = 0;
     for (auto element : lines)
     {
         words.clear();
         splitString(element, ' ', words);
         for (int i = 0; i < words.size(); i++)
+        {
             words[i] = stripString(words[i]);
-        printStringVector(words);
+            currentWordMode = detectWordMode(words[i]);
+            std::cout << "[detecWordMode] " << words[i] << " detected as mode: " << currentWordMode << std::endl;
+        }
+        //printStringVector(words);
     }
 }
 
