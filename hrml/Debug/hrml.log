@@ -1,2 +1,8 @@
 ﻿  hrml.cpp
-  hrml.vcxproj -> C:\Users\JJJP\source\repos\hrml\Debug\hrml.exe
+C:\intel_logs\Dev\hrml\hrml\hrml.cpp(66,22): warning C4018: '<': signed/unsigned mismatch
+C:\intel_logs\Dev\hrml\hrml\hrml.cpp(108,23): warning C4018: '<': signed/unsigned mismatch
+C:\intel_logs\Dev\hrml\hrml\hrml.cpp(137,23): warning C4018: '<': signed/unsigned mismatch
+C:\intel_logs\Dev\hrml\hrml\hrml.cpp(153,23): warning C4018: '<': signed/unsigned mismatch
+C:\intel_logs\Dev\hrml\hrml\hrml.cpp(173,23): warning C4018: '<': signed/unsigned mismatch
+C:\intel_logs\Dev\hrml\hrml\hrml.cpp(213,27): warning C4018: '<': signed/unsigned mismatch
+  hrml.vcxproj -> C:\intel_logs\Dev\hrml\Debug\hrml.exe

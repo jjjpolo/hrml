@@ -36,8 +36,8 @@ properties weill be placed.
 */
 struct property
 {
-    std::string description;
-    std::string value;
+    std::string description = "";
+    std::string value = "";
     property* next = NULL;
 };
 
@@ -45,14 +45,16 @@ struct property
 struct tag
 {
     //----------------->variable
-    std::string name; // tag1, tag2, tag3....
+    std::string name = ""; // tag1, tag2, tag3....
     //----------------->properties tree
-    property* property;
+    property* tagProperty = NULL;
     //----------------->family tree
     tag* father = NULL;
     tag* son = NULL;
     tag* brother = NULL;
 };
+
+void createProperty(std::string s);
 
 void addSonToFamily(tag* fatherTag, tag* sonTag);
 

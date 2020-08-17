@@ -1,8 +1,45 @@
 #include "hrml.h"
 
-property* currentPropertie;
+property* currentProperty = NULL;
 tag* mainTag = NULL; // at the begining we do not have a main node, only the pointer
 tag* currentTag = NULL;
+
+void createProperty(std::string s)
+{
+    if (currentTag != NULL)
+    {
+        property* newProp = new property;
+        newProp->description = s;
+        newProp->next = NULL;
+        newProp->value = "";
+
+        if (currentTag->tagProperty == NULL)
+        {
+            /*
+            * Passing by this if statement means that the current tag does not have any property
+            * so this will be this first one linked by currentTag->tagProperty
+            */
+            currentProperty = newProp;
+            currentTag->tagProperty = newProp;
+        }
+        else
+        {
+            /*
+            * Passing by this else statement means that the current tag already has a property
+            * so the new property will be added as a node linked by property->next
+            * New property must be linked to the last one, to do that we need to walk through
+            * all the existent property until we find a NULL value in the las property->next
+            */
+            currentProperty = currentTag->tagProperty; // walking through properties stars form currentTag->property (i.e. 1st prop)
+            while (currentProperty->next != NULL)
+                currentProperty = currentProperty->next;
+            currentProperty->next = newProp;
+        }
+        std::cout << "[createProperty] New property '" << s << "' created for " << currentTag->name << std::endl;
+    }
+    else
+        std::cout << "There is no current tag to assign property '" << s << "'" << std::endl;
+}
 
 void addSonToFamily(tag* fatherTag, tag* sonTag)
 {
@@ -185,6 +222,9 @@ void createDataStruct(std::string data)
             {
                 case startTag:
                     createTag(words[i]);
+                    break;
+                case gotAParam:
+                    createProperty(words[i]);
                     break;
             }
         }
